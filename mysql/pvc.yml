@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv  # Name of the PersistentVolume resource
+spec:
+  capacity:
+    storage: 1Gi  # Specifies the storage capacity (1 GiB)
+  accessModes:
+    - ReadWriteOnce  # Access mode allows a single node to read and write
+  persistentVolumeReclaimPolicy: Retain  # Keeps data even if the PVC is deleted
+  hostPath:
+    path: /mnt/mysql-data  # Directory path on the node where data is stored

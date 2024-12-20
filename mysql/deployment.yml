@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1  # Number of replicas (pods) to run
+  selector:
+    matchLabels:
+      app: mysql  # Label selector to match the pods
+  template:
+    metadata:
+      labels:
+        app: mysql  # Labels to identify the pods
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0  # MySQL version 8.0 Docker image
+        ports:
+        - containerPort: 3306  # Exposing MySQL's default port
+        env:
+        - name: MYSQL_ROOT_PASSWORD  # Environment variable for the root password
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret  # Kubernetes secret reference
+              key: mysql-root-password  # Secret key containing the root password
+        volumeMounts:
+        - name: mysql-storage  # Persistent storage volume for MySQL data
+          mountPath: /var/lib/mysql  # Directory inside the container for MySQL data
+        - name: init-sql  # Volume for initialization SQL script
+          mountPath: /docker-entrypoint-initdb.d/init.sql  # Mounting the script as a file
+          subPath: init.sql  # Mount only the 'init.sql' file from the ConfigMap
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc  # Persistent Volume Claim for MySQL storage
+      - name: init-sql
+        configMap:
+          name: mysql-init-script  # ConfigMap containing the SQL initialization script

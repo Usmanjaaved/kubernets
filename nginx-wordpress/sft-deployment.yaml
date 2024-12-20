@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sftp
+  labels:
+    app: sftp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sftp
+  template:
+    metadata:
+      labels:
+        app: sftp
+    spec:
+      containers:
+      - name: sftp
+        image: atmoz/sftp:latest
+        ports:
+        - containerPort: 22
+          name: sftp
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "${SFTP_USER}:${SFTP_PASS}:1001" > /etc/sftp-users.conf && /entrypoint
+        env:
+        - name: SFTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: sftp-credentials
+              key: username
+        - name: SFTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: sftp-credentials
+              key: password
+        volumeMounts:
+        - name: wordpress-data
+          mountPath: /home/user
+      volumes:
+      - name: wordpress-data
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
